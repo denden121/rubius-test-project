@@ -19,7 +19,7 @@ export class AuthorsController {
 
     @Put(':id/update')
     async update(@Param('id') id: number, @Body() authorData: Author): Promise<any> {
-        authorData.id = Number(id);
+        authorData.id = id;
         return this.authorsService.update(authorData);
     }
 

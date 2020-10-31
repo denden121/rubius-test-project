@@ -27,14 +27,29 @@ export class BooksService {
         let auth = new Author();
         auth = await this.authorsService.findOneAuthor(book.authorID);
         let newBook = new Book();
-        newBook.title = book.title;
-        newBook.description = book.description;
-        newBook.author = auth;
+        delete book.authorID;
+        newBook = {
+            ...book,
+            author: auth
+        };
         return await this.bookRepository.save(newBook);
     }
 
-    async update(book: Book): Promise<UpdateResult> {
-        return await this.bookRepository.update(book.id, book);
+    async update(book: BookDTO): Promise<UpdateResult> {
+        if (book.authorID) {
+            let auth = new Author();
+            let newBook = new Book();
+            
+            auth = await this.authorsService.findOneAuthor(book.authorID);
+            delete book.authorID;
+            newBook = {
+                ...book,
+                author: auth
+            };
+            return await this.bookRepository.update(newBook.id, newBook);
+        } else {
+            return await this.bookRepository.update(book.id, book);
+        }
     }
 
     async delete(id: number): Promise<DeleteResult> {
