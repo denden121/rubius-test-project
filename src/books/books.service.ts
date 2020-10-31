@@ -1,0 +1,43 @@
+import { Injectable } from '@nestjs/common';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Book } from './book.entity';
+import { BookDTO } from './book.dto';
+import { UpdateResult, DeleteResult } from  'typeorm';
+import { Author } from '../authors/author.entity';
+import { AuthorsService } from '../authors/authors.service';
+
+@Injectable()
+export class BooksService {
+    constructor(
+        @InjectRepository(Book)
+        private bookRepository: Repository<Book>,
+        private authorsService: AuthorsService,
+    ) { }
+
+    async findAll(): Promise<Book[]> {
+        return await this.bookRepository.find({ relations: ["author"] });
+    }
+
+    async findOneBook(id: number): Promise<Book> {
+        return await this.bookRepository.findOne({ where: { id }, relations: ["author"] });
+    }
+
+    async create(book: BookDTO): Promise<Book> {
+        let auth = new Author();
+        auth = await this.authorsService.findOneAuthor(book.authorID);
+        let newBook = new Book();
+        newBook.title = book.title;
+        newBook.description = book.description;
+        newBook.author = auth;
+        return await this.bookRepository.save(newBook);
+    }
+
+    async update(book: Book): Promise<UpdateResult> {
+        return await this.bookRepository.update(book.id, book);
+    }
+
+    async delete(id: number): Promise<DeleteResult> {
+        return await this.bookRepository.delete(id);
+    }
+}
